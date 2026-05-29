@@ -139,13 +139,11 @@ fn test_deposit_emits_event() {
 
     let last_event = env.events().all().last().unwrap();
     assert_eq!(last_event.0, client.address);
-    
+
     use soroban_sdk::TryFromVal;
-    let event_symbol = soroban_sdk::Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
-    assert_eq!(
-        event_symbol,
-        soroban_sdk::Symbol::new(&env, "Deposited")
-    );
+    let event_symbol =
+        soroban_sdk::Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
+    assert_eq!(event_symbol, soroban_sdk::Symbol::new(&env, "Deposited"));
 
     use soroban_sdk::TryIntoVal;
     let deposited_event: events::Deposited = last_event.2.try_into_val(&env).unwrap();
@@ -159,7 +157,7 @@ fn test_deposit_token_transfer() {
     let (env, client, _admin, user, _oracle, token_id, token_client, token_admin) = setup_env();
 
     token_admin.mint(&user, &1000);
-    
+
     assert_eq!(token_client.balance(&user), 1000);
     assert_eq!(token_client.balance(&client.address), 0);
 

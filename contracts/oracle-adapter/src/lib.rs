@@ -24,4 +24,3 @@ impl OracleContract {
 }
 
 mod test;
-

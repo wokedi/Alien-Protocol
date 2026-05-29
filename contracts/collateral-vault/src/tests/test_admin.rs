@@ -78,11 +78,9 @@ fn test_set_admin_emits_event() {
     let last_event = env.events().all().last().unwrap();
     assert_eq!(last_event.0, client.address);
     use soroban_sdk::TryFromVal;
-    let event_symbol = soroban_sdk::Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
-    assert_eq!(
-        event_symbol,
-        soroban_sdk::Symbol::new(&env, "AdminChanged")
-    );
+    let event_symbol =
+        soroban_sdk::Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
+    assert_eq!(event_symbol, soroban_sdk::Symbol::new(&env, "AdminChanged"));
 }
 
 #[test]
@@ -95,7 +93,7 @@ fn test_old_admin_cannot_act_after_transfer() {
     // Old admin tries to pause - but contract requires auth from the admin in storage, which is now new_admin.
     // Under mock_all_auths, require_auth verifies new_admin.
     client.pause();
-    
+
     let auths = env.auths();
     assert_eq!(auths.len(), 1);
     let (auth_addr, _) = auths.get(0).unwrap();
@@ -174,11 +172,9 @@ fn test_unpause_emits_event() {
     let last_event = env.events().all().last().unwrap();
     assert_eq!(last_event.0, client.address);
     use soroban_sdk::TryFromVal;
-    let event_symbol = soroban_sdk::Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
-    assert_eq!(
-        event_symbol,
-        soroban_sdk::Symbol::new(&env, "Unpaused")
-    );
+    let event_symbol =
+        soroban_sdk::Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
+    assert_eq!(event_symbol, soroban_sdk::Symbol::new(&env, "Unpaused"));
 }
 
 #[test]
@@ -234,9 +230,7 @@ fn test_remove_supported_asset_emits_event() {
     let last_event = env.events().all().last().unwrap();
     assert_eq!(last_event.0, client.address);
     use soroban_sdk::TryFromVal;
-    let event_symbol = soroban_sdk::Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
-    assert_eq!(
-        event_symbol,
-        soroban_sdk::Symbol::new(&env, "AssetRemoved")
-    );
+    let event_symbol =
+        soroban_sdk::Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
+    assert_eq!(event_symbol, soroban_sdk::Symbol::new(&env, "AssetRemoved"));
 }

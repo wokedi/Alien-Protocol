@@ -77,6 +77,3 @@ impl Unpaused {
         );
     }
 }
-
-
-

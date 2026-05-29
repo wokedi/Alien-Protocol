@@ -203,11 +203,14 @@ impl VaultContract {
                 None => panic!("price not found"),
             };
 
-            if current_time > price_data.timestamp && current_time - price_data.timestamp > ORACLE_STALE_THRESHOLD {
+            if current_time > price_data.timestamp
+                && current_time - price_data.timestamp > ORACLE_STALE_THRESHOLD
+            {
                 soroban_sdk::panic_with_error!(&env, VaultError::StalePrice);
             }
 
-            let item_value = item.amount
+            let item_value = item
+                .amount
                 .checked_mul(price_data.price)
                 .unwrap_or_else(|| panic!("overflow in value calculation"));
 
@@ -226,4 +229,3 @@ mod storage;
 #[cfg(test)]
 mod tests;
 mod types;
-

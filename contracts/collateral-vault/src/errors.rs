@@ -11,4 +11,3 @@ pub enum VaultError {
     NoPosition = 5,
     StalePrice = 6,
 }
-

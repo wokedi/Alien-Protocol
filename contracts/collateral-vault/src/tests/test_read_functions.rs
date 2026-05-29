@@ -79,7 +79,7 @@ fn test_get_position_returns_correct_data() {
     let position = client.get_position(&user);
     assert_eq!(position.user, user);
     assert_eq!(position.collateral.len(), 1);
-    
+
     let asset_col = position.collateral.get(0).unwrap();
     assert_eq!(asset_col.asset, token_id);
     assert_eq!(asset_col.amount, 500);

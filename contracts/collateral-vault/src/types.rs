@@ -33,4 +33,3 @@ pub struct PriceData {
     pub price: i128,
     pub timestamp: u64,
 }
-
