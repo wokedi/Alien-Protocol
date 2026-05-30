@@ -682,7 +682,7 @@
           "v0": {
             "topics": [
               {
-                "symbol": "Unpaused"
+                "symbol": "unpaused"
               }
             ],
             "data": {
