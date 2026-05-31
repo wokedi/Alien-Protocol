@@ -158,7 +158,12 @@ pub fn add_user_asset(env: &Env, user: &Address, asset: &Address) {
 }
 
 /// Build a Position for a user by loading all their non-zero balances.
-pub fn get_position(env: &Env, user: &Address) -> Position {
+pub fn get_position(env: &Env, user: &Address) -> Option<Position> {
+    let index = get_position_index(env);
+    if !index.contains(user) {
+        return None;
+    }
+
     let all_assets = get_user_assets(env, user);
     let mut collateral: Vec<CollateralAsset> = Vec::new(env);
 
@@ -172,10 +177,14 @@ pub fn get_position(env: &Env, user: &Address) -> Position {
         }
     }
 
-    Position {
+    if collateral.is_empty() {
+        return None;
+    }
+
+    Some(Position {
         user: user.clone(),
         collateral,
-    }
+    })
 }
 
 /// Returns all active positions (users with at least one non-zero balance).
@@ -183,9 +192,7 @@ pub fn get_all_positions(env: &Env) -> Vec<Position> {
     let index = get_position_index(env);
     let mut positions: Vec<Position> = Vec::new(env);
     for user in index.iter() {
-        let position = get_position(env, &user);
-        // Only include users that still have at least one active balance
-        if !position.collateral.is_empty() {
+        if let Some(position) = get_position(env, &user) {
             positions.push_back(position);
         }
     }

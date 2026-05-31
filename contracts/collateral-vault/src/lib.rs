@@ -2,7 +2,7 @@
 use soroban_sdk::{contract, contractimpl, token, Address, Env, Vec};
 
 use errors::VaultError;
-use types::{CollateralAsset, Position};
+use types::Position;
 
 #[soroban_sdk::contractclient(name = "OracleClient")]
 pub trait Oracle {
@@ -196,8 +196,7 @@ impl VaultContract {
         storage::set_position_balance(&env, &receiver, &asset, new_balance);
 
         // If the user has no remaining balance across any asset, remove from index
-        let position = storage::get_position(&env, &receiver);
-        if position.collateral.is_empty() {
+        if storage::get_position(&env, &receiver).is_none() {
             storage::remove_from_position_index(&env, &receiver);
         }
 
@@ -304,27 +303,10 @@ impl VaultContract {
     }
 
     pub fn get_position(env: Env, user: Address) -> Position {
-        let index = storage::get_position_index(&env);
-        let assets = storage::get_user_assets(&env, &user);
-        let mut collateral: soroban_sdk::Vec<CollateralAsset> = soroban_sdk::Vec::new(&env);
-        let mut has_balance = false;
-
-        for asset in assets.iter() {
-            let amount = storage::get_position_balance(&env, &user, &asset);
-            if amount > 0 {
-                collateral.push_back(CollateralAsset {
-                    asset: asset.clone(),
-                    amount,
-                });
-                has_balance = true;
-            }
+        match storage::get_position(&env, &user) {
+            Some(position) => position,
+            None => soroban_sdk::panic_with_error!(&env, VaultError::NoPosition),
         }
-
-        if !index.contains(&user) || !has_balance {
-            soroban_sdk::panic_with_error!(&env, VaultError::NoPosition);
-        }
-
-        Position { user, collateral }
     }
 
     pub fn get_collateral_value(env: Env, user: Address) -> i128 {
