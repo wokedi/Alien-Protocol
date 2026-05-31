@@ -14,4 +14,5 @@ pub enum VaultError {
     Unauthorized = 8,
     NotInitialized = 9,
     BelowMinCollateralRatio = 10,
+    AlreadyAdmin = 11,
 }
