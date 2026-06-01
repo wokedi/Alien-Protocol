@@ -45,7 +45,10 @@ impl OracleContract {
     }
 
     pub fn set_price(env: Env, asset: Address, price: i128, timestamp: u64) {
-        let caller = storage::get_admin(&env).expect("NotInitialized");
+        let caller = match storage::get_admin(&env) {
+            Some(addr) => addr,
+            None => soroban_sdk::panic_with_error!(&env, OracleError::NotInitialized),
+        };
         caller.require_auth();
 
         assert!(price > 0, "price must be positive");
