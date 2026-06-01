@@ -1,54 +1,91 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env};
+use soroban_sdk::{contract, contracterror, contractevent, contractimpl, Address, Env};
+
+#[contracterror]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum OracleError {
+    NotInitialized = 1,
+    AlreadyAdmin = 2,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, PartialEq)]
+pub struct AdminChanged {
+    pub old_admin: Address,
+    pub new_admin: Address,
+}
 
 mod events;
 mod storage;
+mod types;
 
-#[contracttype]
-#[derive(Clone, Debug, PartialEq)]
-pub struct PriceData {
-    pub price: i128,
-    pub timestamp: u64,
-}
+pub use types::{DataKey, PriceData};
 
 #[contract]
 pub struct OracleContract;
 
 #[contractimpl]
 impl OracleContract {
-    /// Initializes the oracle contract with the given admin address.
-    /// Can only be called once. Requires auth from the admin address.
-    pub fn initialize(env: Env, admin: Address) {
-        if storage::get_admin(&env).is_some() {
-            panic!("already initialized");
+    pub fn initialize(env: Env, admin: Address, staleness_threshold: u64) {
+        if storage::is_initialized(&env) {
+            panic!("AlreadyInitialized");
         }
-        admin.require_auth();
         storage::set_admin(&env, &admin);
+        storage::set_staleness_threshold(&env, staleness_threshold);
+        events::Initialized {
+            admin,
+            staleness_threshold,
+        }
+        .publish(&env);
     }
 
-    /// Returns the stored price data for the given asset, if any.
     pub fn get_price(env: Env, asset: Address) -> Option<PriceData> {
         storage::get_price(&env, &asset)
     }
 
-    /// Sets the price for a given asset.
-    /// Only callable by the stored admin.
-    /// Panics if price <= 0, timestamp <= 0, or contract is not initialized.
-    /// Emits a PriceUpdated event on success.
     pub fn set_price(env: Env, asset: Address, price: i128, timestamp: u64) {
-        let admin = storage::get_admin(&env).expect("not initialized");
-        admin.require_auth();
+        let caller = storage::get_admin(&env).expect("NotInitialized");
+        caller.require_auth();
 
         assert!(price > 0, "price must be positive");
         assert!(timestamp > 0, "timestamp must be positive");
 
-        let price_data = PriceData { price, timestamp };
-        storage::set_price(&env, &asset, &price_data);
+        let data = PriceData { price, timestamp };
+        storage::set_price(&env, &asset, &data);
 
         events::PriceUpdated {
             asset,
             price,
             timestamp,
+        }
+        .publish(&env);
+    }
+
+    pub fn get_admin(env: Env) -> Option<Address> {
+        storage::get_admin(&env)
+    }
+
+    pub fn get_staleness_threshold(env: Env) -> Option<u64> {
+        storage::get_staleness_threshold(&env)
+    }
+
+    pub fn set_admin(env: Env, new_admin: Address) {
+        let current_admin = match storage::get_admin(&env) {
+            Some(addr) => addr,
+            None => soroban_sdk::panic_with_error!(&env, OracleError::NotInitialized),
+        };
+        current_admin.require_auth();
+
+        if current_admin == new_admin {
+            soroban_sdk::panic_with_error!(&env, OracleError::AlreadyAdmin);
+        }
+
+        storage::set_admin(&env, &new_admin);
+
+        AdminChanged {
+            old_admin: current_admin,
+            new_admin,
         }
         .publish(&env);
     }
