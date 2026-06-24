@@ -72,15 +72,14 @@ fn test_unpause_success() {
     assert_eq!(price_data.price, 100);
 }
 
+
 #[test]
+#[should_panic] 
 fn test_unpause_non_admin_fails() {
-    let (env, client, admin) = setup_env();
-    client.pause();
-    client.unpause();
-    let auths = env.auths();
-    assert_eq!(auths.len(), 2);
-    let (auth_addr, _) = auths.last().unwrap();
-    assert_eq!(*auth_addr, admin);
+    let (env, client, _admin) = setup_env(); 
+    client.pause(); 
+    env.set_auths(&[]);
+    client.unpause(); 
 }
 
 #[test]
