@@ -2,9 +2,6 @@
 #[path = "tests/mod.rs"]
 mod tests;
 
-
-
-
 use super::*;
 use soroban_sdk::testutils::{Address as _, Events, Ledger as _};
 use soroban_sdk::{Address, Env, Symbol, TryFromVal};
@@ -431,5 +428,3 @@ fn test_get_admin_requires_no_auth() {
     assert!(result.is_some());
     assert_eq!(result.unwrap(), admin);
 }
-
-
