@@ -10,6 +10,7 @@ pub enum OracleError {
     OraclePaused = 3,
     AlreadyPaused = 4,
     FeederNotFound = 5,
+    NotPaused = 6,
 }
 
 #[contractevent]
@@ -140,11 +141,11 @@ impl OracleContract {
         admin.require_auth();
 
         if !storage::is_paused(&env) {
-            panic!("oracle is not paused");
+            soroban_sdk::panic_with_error!(&env, OracleError::NotPaused);
         }
 
         storage::set_paused(&env, false);
-        events::Unpaused { paused: false }.publish(&env);
+        events::Unpaused { by: admin }.publish(&env);
     }
 
     pub fn remove_authorized_feeder(env: Env, feeder: Address) {
